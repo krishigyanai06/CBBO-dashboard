@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { fetchMe, updateProfile } from '../thunks/layoutThunk';
+import { verifyOtp } from '../thunks/authThunk';
 
 const initialState = {
   me: null,
@@ -34,6 +35,9 @@ const layoutSlice = createSlice({
       .addCase(updateProfile.rejected, (state, action) => {
         state.saving = false;
         state.saveError = action.payload;
+      })
+      .addCase(verifyOtp.fulfilled, (state, action) => {
+        state.demoMode = action.payload.user?.mobile === '8888888888';
       });
   },
 });

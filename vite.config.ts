@@ -63,10 +63,11 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/api\..*/i,
+            urlPattern: /^https:\/\/bharat-fpo\.krishigyanai\.com\/api\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",
+              networkTimeoutSeconds: 10,
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
             },
           },

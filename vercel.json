@@ -1,5 +1,8 @@
 {
   "rewrites": [
-    { "source": "/((?!assets|icons|sw.js|workbox.*|manifest.webmanifest).*)", "destination": "/index.html" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://bharat-fpo.krishigyanai.com/api/:path*"
+    }
   ]
 }

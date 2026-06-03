@@ -44,6 +44,7 @@ const authSlice = createSlice({
       .addCase(verifyOtp.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(verifyOtp.fulfilled, (state, action) => {
         const { token, user } = action.payload;
+        const isDemo = user?.mobile === '8888888888';
         state.loading = false;
         state.token = token;
         state.user = user;
@@ -51,6 +52,7 @@ const authSlice = createSlice({
         state.otpSent = false;
         setToken(token);
         localStorage.setItem('user', JSON.stringify(user ?? null));
+        localStorage.setItem('demoMode', String(isDemo));
       })
       .addCase(verifyOtp.rejected, (state, action) => { state.loading = false; state.error = action.payload || 'OTP verification failed'; });
   },

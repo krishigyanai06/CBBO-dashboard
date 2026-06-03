@@ -3,7 +3,6 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/slices/authSlice";
 import { clearMe } from "../store/slices/layoutSlice";
-import { toggleDemoMode } from "../store/slices/layoutSlice";
 import {
   LayoutDashboard,
   Building2,
@@ -307,18 +306,7 @@ export default function Layout() {
 
             <GoogleLangPicker classes="d-none d-xl-block" />
 
-            {/* Demo Mode Toggle */}
-            <button
-              onClick={() => dispatch(toggleDemoMode())}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
-                demoMode
-                  ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
-                  : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${ demoMode ? 'bg-amber-500' : 'bg-gray-300'}`} />
-              {demoMode ? 'Demo' : 'Live'}
-            </button>
+
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => {

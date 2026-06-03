@@ -40,6 +40,7 @@ export default function Login() {
   const [step, setStep] = useState(1);
   const [formError, setFormError] = useState("");
 
+
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
   const displayError = formError || error;
