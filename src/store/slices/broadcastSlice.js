@@ -15,25 +15,36 @@ const broadcastSlice = createSlice({
     stats: null,
     loading: false,
     error: null,
+    sending: false,
+    sendError: null,
+    sendSuccess: false,
   },
   reducers: {
-    clearError: (state) => {
-      state.error = null;
+    clearError: (state) => { state.error = null; },
+    clearSendState: (state) => {
+      state.sending = false;
+      state.sendError = null;
+      state.sendSuccess = false;
     },
   },
   extraReducers: (builder) => {
     builder
       // Send Broadcast
       .addCase(sendBroadcast.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.sending = true;
+        state.sendError = null;
+        state.sendSuccess = false;
       })
-      .addCase(sendBroadcast.fulfilled, (state) => {
-        state.loading = false;
+      .addCase(sendBroadcast.fulfilled, (state, action) => {
+        state.sending = false;
+        state.sendSuccess = true;
+        // Prepend the new broadcast so it appears first in history
+        const newItem = action.payload?.data || action.payload?.broadcast || action.payload;
+        if (newItem && newItem._id) state.broadcasts.unshift(newItem);
       })
       .addCase(sendBroadcast.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+        state.sending = false;
+        state.sendError = action.payload;
       })
 
       // Fetch History
@@ -101,5 +112,5 @@ const broadcastSlice = createSlice({
   },
 });
 
-export const { clearError } = broadcastSlice.actions;
+export const { clearError, clearSendState } = broadcastSlice.actions;
 export default broadcastSlice.reducer;

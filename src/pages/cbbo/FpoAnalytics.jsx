@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFarmersPerTenant, getRevenueStats } from '../../store/thunks/cbboThunk';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie,
 } from 'recharts';
-import { Building2, Search, ArrowUpDown, TrendingUp, Users, X, IndianRupee } from 'lucide-react';
+import { Building2, Search, ArrowUpDown, TrendingUp, Users, IndianRupee } from 'lucide-react';
 
 const COLORS = [
   '#16a34a', // green-600
@@ -52,7 +52,7 @@ export default function FpoAnalytics() {
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);
   const [selectedFpo, setSelectedFpo] = useState(null);
-  const PER_PAGE = 10;
+  const PER_PAGE = 50;
 
   const demoMode = useSelector((s) => s.layout.demoMode);
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function FpoAnalytics() {
   useEffect(() => { setPage(1); }, [search, sortField]);
 
   const handleViewRevenue = (fpo) => {
-    setSelectedFpo(fpo);
+    setSelectedFpo(prev => prev?.tenantId === fpo.tenantId ? null : fpo);
     dispatch(getRevenueStats(fpo.tenantId));
   };
 
@@ -298,7 +298,8 @@ export default function FpoAnalytics() {
               {paginated.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-400">No FPOs found.</td></tr>
               ) : paginated.map((t, idx) => (
-                <tr key={t.tenantId} className="hover:bg-gray-50/50 transition">
+                <React.Fragment key={t.tenantId}>
+                <tr className="hover:bg-gray-50/50 transition">
                   <td className="px-6 py-4 text-gray-400 font-medium">{(page - 1) * PER_PAGE + idx + 1}</td>
                   <td className="px-6 py-4 font-semibold text-gray-800">{t.tenantName}</td>
                   <td className="px-6 py-4">
@@ -309,12 +310,45 @@ export default function FpoAnalytics() {
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleViewRevenue(t)}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition"
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition ${
+                        selectedFpo?.tenantId === t.tenantId
+                          ? 'bg-emerald-600 border-emerald-600 text-white'
+                          : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                      }`}
                     >
-                      View Revenue
+                      {selectedFpo?.tenantId === t.tenantId ? 'Hide Revenue' : 'View Revenue'}
                     </button>
                   </td>
                 </tr>
+                {selectedFpo?.tenantId === t.tenantId && (
+                  <tr className="bg-emerald-50/40">
+                    <td colSpan={6} className="px-6 py-4">
+                      {revenueLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-emerald-600 animate-pulse">
+                          <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                          Fetching revenue data…
+                        </div>
+                      ) : revenueStats ? (() => {
+                        const tenantRev = revenueStats.revenuePerTenant?.find(r => r.tenantId === selectedFpo.tenantId) ?? revenueStats;
+                        return (
+                          <div className="grid grid-cols-3 gap-3">
+                            {[
+                              { label: 'Sales Revenue', value: fmtINR(tenantRev.salesRevenue ?? 0), color: 'text-green-700', bg: 'bg-green-50' },
+                              { label: 'Procurement Expense', value: fmtINR(tenantRev.procurementExpense ?? 0), color: 'text-orange-700', bg: 'bg-orange-50' },
+                              { label: 'Net Revenue', value: fmtINR(tenantRev.netRevenue ?? 0), color: (tenantRev.netRevenue ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-600', bg: (tenantRev.netRevenue ?? 0) >= 0 ? 'bg-emerald-50' : 'bg-red-50' },
+                            ].map(({ label, value, color, bg }) => (
+                              <div key={label} className={`${bg} rounded-xl p-3`}>
+                                <p className="text-xs text-gray-400 font-medium">{label}</p>
+                                <p className={`text-lg font-bold mt-0.5 ${color}`}>{value}</p>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })() : <p className="text-sm text-gray-400">No revenue data returned from API.</p>}
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
@@ -333,46 +367,7 @@ export default function FpoAnalytics() {
         )}
       </div>
 
-      {/* Revenue Detail Panel */}
-      {selectedFpo && (
-        <div className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-base font-bold text-gray-800">{selectedFpo.tenantName} — Revenue Stats</h3>
-              <p className="text-xs text-gray-400 mt-0.5">tenantId: <span className="font-mono text-gray-500">{selectedFpo.tenantId}</span></p>
-            </div>
-            <button onClick={() => setSelectedFpo(null)} className="p-1.5 rounded-lg hover:bg-gray-100 transition">
-              <X className="w-4 h-4 text-gray-500" />
-            </button>
-          </div>
 
-          {revenueLoading ? (
-            <div className="flex items-center gap-2 text-sm text-emerald-600 animate-pulse">
-              <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-              Fetching revenue data…
-            </div>
-          ) : revenueStats ? (() => {
-            // find the specific tenant's revenue from revenuePerTenant
-            const tenantRev = revenueStats.revenuePerTenant?.find(r => r.tenantId === selectedFpo.tenantId) ?? revenueStats;
-            return (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {[
-                  { label: 'Sales Revenue', value: fmtINR(tenantRev.salesRevenue ?? 0), color: 'text-green-700', bg: 'bg-green-50' },
-                  { label: 'Procurement Expense', value: fmtINR(tenantRev.procurementExpense ?? 0), color: 'text-orange-700', bg: 'bg-orange-50' },
-                  { label: 'Net Revenue', value: fmtINR(tenantRev.netRevenue ?? 0), color: (tenantRev.netRevenue ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-600', bg: (tenantRev.netRevenue ?? 0) >= 0 ? 'bg-emerald-50' : 'bg-red-50' },
-                ].map(({ label, value, color, bg }) => (
-                  <div key={label} className={`${bg} rounded-xl p-4`}>
-                    <p className="text-xs text-gray-400 font-medium">{label}</p>
-                    <p className={`text-xl font-bold mt-0.5 ${color}`}>{value}</p>
-                  </div>
-                ))}
-              </div>
-            );
-          })() : (
-            <p className="text-sm text-gray-400">No revenue data returned from API.</p>
-          )}
-        </div>
-      )}
     </div>
   );
 }
