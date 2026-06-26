@@ -1,4 +1,4 @@
-# **Bharat FPO – Admin Dashboard**
+# **Bharat FPO – Admin Dashboard**(Duumy Dashboard)
 
 A modern Farm Management Dashboard for **Marjeevi Pragatisheel FPO**, built with React, Redux Toolkit, and Tailwind CSS.
 
